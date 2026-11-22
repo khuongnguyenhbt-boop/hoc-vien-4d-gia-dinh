@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="origin" />
+  <title>Học Viện 4D Cinema Gia Đình • Phòng Chiếu Bài Giảng 4D Song Não</title>
+  <link rel="stylesheet" href="./css/cinema4d.css" />
+</head>
+<body class="theme-cinema">
+  <!-- Nền Hạt Ánh Sáng 4D & Pháo Hoa Chúc Mừng -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- Bảng Vẽ Dạ Quang Phủ Toàn Màn Hình -->
+  <canvas id="drawCanvas"></canvas>
+  <div id="drawToolbar" class="draw-toolbar hidden">
+    <button type="button" class="draw-tool-btn active" data-dtool="pen">✏️ Bút</button>
+    <button type="button" class="draw-tool-btn" data-dtool="arrow">➡️ Mũi Tên</button>
+    <button type="button" class="draw-tool-btn" data-dtool="circle">⭕ Khoanh Tròn</button>
+    <button type="button" class="draw-tool-btn" data-dtool="rect">▭ Đóng Khung</button>
+    <button type="button" class="draw-tool-btn" data-dtool="eraser">🧹 Tẩy</button>
+    <button type="button" id="btnDrawNeon" class="draw-tool-btn active" title="Bật/tắt nét dạ quang">🌟 Dạ Quang</button>
+    <button type="button" id="btnDrawStars" class="draw-tool-btn" title="Bật/tắt dải sao lấp lánh">✨ Sao</button>
+    <button type="button" class="draw-color-dot active" data-dcolor="#f59e0b" style="background:#f59e0b" title="Vàng Kim"></button>
+    <button type="button" class="draw-color-dot" data-dcolor="#ef4444" style="background:#ef4444" title="Đỏ"></button>
+    <button type="button" class="draw-color-dot" data-dcolor="#10b981" style="background:#10b981" title="Xanh Ngọc"></button>
+    <button type="button" class="draw-color-dot" data-dcolor="#38bdf8" style="background:#38bdf8" title="Xanh Dương"></button>
+    <button type="button" class="draw-color-dot" data-dcolor="#ffffff" style="background:#ffffff" title="Trắng"></button>
+    <button type="button" id="btnDrawUndo" class="draw-tool-btn" title="Hoàn tác nét vẽ (Ctrl+Z)">↩️</button>
+    <button type="button" id="btnDrawClear" class="draw-tool-btn" title="Xóa hết nét vẽ">🗑️</button>
+    <button type="button" id="btnDrawClose" class="draw-tool-btn" style="background:#e11d48;color:#fff;border-color:#fb7185">✕</button>
+  </div>
+
+  <!-- ==================== THANH ĐIỀU KHIỂN RẠP CHIẾU 4D ==================== -->
+  <header class="cinema-header">
+    <div class="brand-wrap">
+      <a href="./index.html" class="brand-badge" title="Chuyển về bản Học Viện 4D Cổ Điển">4D</a>
+      <div>
+        <div class="brand-name">
+          <span>HỌC VIỆN 4D CINEMA GIA ĐÌNH</span>
+          <span class="v-tag">4D PRO</span>
+          <span class="v-tag" id="headerStarsBadge">⭐ 0 sao</span>
+        </div>
+        <div class="brand-meta" id="headerLessonSub">Phòng chiếu tự học Song Não • Lớp 4 / 7 / 10</div>
+      </div>
+    </div>
+
+    <!-- Chuyển hồ sơ học sinh -->
+    <div class="pill-group" role="tablist" aria-label="Chọn hồ sơ con">
+      <button type="button" class="seg-btn active" data-profile-grade="4">🎒 Lớp 4</button>
+      <button type="button" class="seg-btn" data-profile-grade="7">🚀 Lớp 7</button>
+      <button type="button" class="seg-btn" data-profile-grade="10">🎯 Lớp 10</button>
+    </div>
+
+    <!-- Chuyển phong cách giao diện (Điện ảnh / Sáng dịu mắt / Sketchnote) -->
+    <div class="pill-group" aria-label="Phong cách hiển thị">
+      <button type="button" class="seg-btn active" data-art-theme="cinema">🎬 Điện Ảnh</button>
+      <button type="button" class="seg-btn" data-art-theme="light">☀️ Dịu Mắt</button>
+      <button type="button" class="seg-btn" data-art-theme="sketch">📝 Sketchnote</button>
+    </div>
+
+    <!-- Công cụ tương tác 4D -->
+    <div class="cmd-actions">
+      <button type="button" id="btnOpenFactory" class="cbtn cbtn-hero">✨ Tạo Bài Mới (1 Chạm)</button>
+      <button type="button" id="btnToggleDraw" class="cbtn" title="Vẽ & khoanh tròn trực tiếp lên bài giảng">✏️ Vẽ</button>
+      <button type="button" id="btnToggle432" class="cbtn" title="Nhạc sóng hài 432Hz giúp tĩnh tâm tập trung">🎵 432Hz</button>
+      <button type="button" id="btnToggleSfx" class="cbtn active" title="Bật/tắt âm thanh lật thẻ & chúc mừng">🔊 SFX</button>
+      <button type="button" id="btnToggleTutor" class="cbtn cbtn-gold" title="Mở Gia Sư AI 4 Nhân Vật">🏛️ Gia Sư AI</button>
+      <button type="button" id="btnOpenJournal" class="cbtn cbtn-emerald" title="Nhật ký học tập & rèn luyện 4D">📖 Nhật Ký</button>
+      <button type="button" id="btnOpenParent" class="cbtn" title="Cài đặt API Phụ huynh">👨‍👩‍👧 Phụ Huynh</button>
+      <button type="button" id="btnOpenDrawer" class="cbtn cbtn-cyan" title="Kho bài học & Danh mục trang">
+        📑 <span id="slideCounterLabel">1 / 2</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== SÂN KHẤU 4D CINEMA (99VW SPLIT-STAGE) ==================== -->
+  <main class="cinema-viewport">
+    <div class="stage-container" id="stageContainer">
+
+      <!-- CỘT TRÁI: KHUNG CHIẾU 16:9 + DOCK ĐIỀU KHIỂN + THẺ LẬT 3D CHUYỂN HÓA -->
+      <section class="left-col" id="leftCol">
+        <div class="media-frame" id="cinemaMediaFrame">
+          <div id="slideMediaHost" class="media-host"></div>
+
+          <!-- Bộ chuyển nguồn Media nhanh ở góc trên phải -->
+          <div class="media-top-overlay">
+            <button type="button" id="srcSvgBtn" class="src-pill active" title="Sơ đồ AI (Ngoại tuyến)">🎨 SVG</button>
+            <button type="button" id="srcImgBtn" class="src-pill" title="Ảnh minh họa">🖼️ Ảnh</button>
+            <button type="button" id="srcYtBtn" class="src-pill" title="Video YouTube">▶️ YouTube</button>
+            <button type="button" id="btnSwapMediaTop" class="src-pill" style="color:#38bdf8;" title="Chọn hoặc dán ảnh/video khác">🔄 Đổi Media</button>
+          </div>
+
+          <!-- Mũi tên chuyển trang nổi hai bên -->
+          <button type="button" id="btnOverlayPrev" class="nav-overlay-btn nav-overlay-prev" title="Trang trước (←)">❮</button>
+          <button type="button" id="btnOverlayNext" class="nav-overlay-btn nav-overlay-next" title="Trang tiếp (→)">❯</button>
+        </div>
+
+        <!-- Cinema Control Dock: Nguồn + Slow-Mo + Đổi Video + Toàn Màn Hình -->
+        <div class="cinema-dock">
+          <div class="dock-group">
+            <span id="mediaSourceLabel" style="font-size:11.5px;font-weight:700;color:var(--text-muted);">🎨 Sơ đồ AI (SVG)</span>
+          </div>
+          <div class="dock-group">
+            <span style="font-size:11px;font-weight:800;color:var(--gold);">🐢 Video:</span>
+            <button type="button" class="speed-pill" data-vspeed="0.5">0.5x</button>
+            <button type="button" class="speed-pill" data-vspeed="0.75">0.75x</button>
+            <button type="button" class="speed-pill active" data-vspeed="1">1x</button>
+            <button type="button" class="speed-pill" data-vspeed="1.25">1.25x</button>
+            <button type="button" class="speed-pill" data-vspeed="1.5">1.5x</button>
+            <button type="button" id="btnNextYtCandidate" class="cbtn hidden" style="padding:3px 8px;font-size:11px;">🔄 Video khác</button>
+            <a id="btnExternalYt" class="cbtn hidden" style="padding:3px 8px;font-size:11px;" href="#" target="_blank" rel="noopener noreferrer">▶ YouTube</a>
+            <button type="button" id="btnFullscreenMedia" class="cbtn cbtn-gold" style="padding:4px 9px;font-size:11px;" title="Xem toàn màn hình (Phím F)">⛶ Toàn Màn Hình</button>
+          </div>
+        </div>
+
+        <!-- KHU VỰC DƯỚI KHUNG CHIẾU: THẺ LẬT 3D CHUYỂN HÓA (XÓA SẠCH KHOẢNG TRỐNG THỪA) -->
+        <div class="left-lower-area" id="leftLowerArea">
+          <div class="section-bar">
+            <span class="section-bar-title">🔄 THẺ LẬT 3D CHUYỂN HÓA TƯ DUY (CHẠM ĐỂ LẬT)</span>
+            <div class="dock-group">
+              <button type="button" id="btnFlipToAfter" class="cbtn cbtn-emerald" style="padding:3px 9px;font-size:11px;">✨ Chuyển Hóa</button>
+              <button type="button" id="btnFlipReset" class="cbtn" style="padding:3px 9px;font-size:11px;">🔄 Lật Lại</button>
+            </div>
+          </div>
+
+          <div class="flip-scene" id="flipCardScene" tabindex="0" role="button" aria-label="Lật thẻ tư duy 3D">
+            <div class="flip-card" id="flipCardInner">
+              <div class="flip-face flip-front">
+                <span class="flip-tag" id="flipFrontLabel">❌ Hay nhầm lẫn</span>
+                <div class="flip-body" id="flipBeforeText"></div>
+                <span class="flip-hint">👆 Chạm vào thẻ để mở khóa góc nhìn 4D</span>
+              </div>
+              <div class="flip-face flip-back">
+                <span class="flip-tag" id="flipBackLabel">✨ À ha! Hóa ra là thế!</span>
+                <div class="flip-body" id="flipAfterText"></div>
+                <span class="flip-hint">🎉 Tuyệt vời! Chạm lần nữa để ôn lại</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THANH KÉO CHIA TỶ LỆ 2 CỘT -->
+      <div class="stage-splitter" id="stageSplitter" title="Kéo trái/phải để điều chỉnh độ rộng khung chiếu">
+        <div class="splitter-handle"></div>
+      </div>
+
+      <!-- CỘT PHẢI: NỘI DUNG SONG NÃO + TRẮC NGHIỆM + KỊCH BẢN + THANH GIỌNG ĐỌC CINEMA -->
+      <section class="right-col" id="rightCol">
+        <div class="right-panel">
+          <div class="right-scroll">
+            <!-- Thanh thông tin trang & Chỉnh cỡ chữ A- / A+ -->
+            <div class="slide-meta-row">
+              <span class="slide-tag" id="slideTagBadge">🎒 LỚP 4 • TOÁN HỌC • TRANG 1 / 2</span>
+              <div class="dock-group">
+                <div class="pill-group" title="Phóng to / Thu nhỏ cỡ chữ">
+                  <button type="button" id="btnFontDown" class="seg-btn" style="padding:3px 7px;">A-</button>
+                  <button type="button" id="btnFontReset" class="seg-btn" style="padding:3px 7px;color:var(--gold);">100%</button>
+                  <button type="button" id="btnFontUp" class="seg-btn" style="padding:3px 7px;">A+</button>
+                </div>
+                <button type="button" id="btnDownloadJson" class="cbtn" style="padding:4px 8px;font-size:11px;" title="Tải bài giảng thành file JSON sao lưu">💾 JSON</button>
+              </div>
+            </div>
+
+            <!-- Tiêu đề Slide -->
+            <h1 class="slide-title" id="slideTitle">Đang tải bài giảng 4D...</h1>
+
+            <!-- Thông Điệp Chạm Trái Tim -->
+            <div class="heart-banner">
+              <span style="font-size:24px;">💡</span>
+              <div>
+                <div class="heart-label">✨ Thông Điệp Cốt Lõi — Ghi Nhớ Ngay</div>
+                <p class="heart-text" id="slideHeartMessage"></p>
+              </div>
+            </div>
+
+            <!-- Kịch bản Lời Giảng Song Não -->
+            <div class="script-box">
+              <div class="section-bar">
+                <span class="section-bar-title">🎙️ KỊCH BẢN LỜI GIẢNG SONG NÃO</span>
+                <div class="dock-group">
+                  <button type="button" id="btnToggleScriptExpand" class="cbtn" style="padding:3px 8px;font-size:11px;">📖 Mở Rộng</button>
+                  <button type="button" id="btnCopyScript" class="cbtn" style="padding:3px 8px;font-size:11px;">📋 Copy</button>
+                </div>
+              </div>
+              <p class="script-text" id="slideScript"></p>
+            </div>
+
+            <!-- Thử Thách 15 Giây (Quick Check Quiz + Pháo Hoa + SFX) -->
+            <div class="quiz-box">
+              <div class="section-bar">
+                <span class="section-bar-title">⚡ THỬ THÁCH 15 GIÂY (NHẬN NGAY +1 SAO)</span>
+              </div>
+              <p class="quiz-q" id="quizQuestion"></p>
+              <div class="quiz-grid" id="quizOptions"></div>
+              <div class="quiz-feedback hidden" id="quizFeedback"></div>
+            </div>
+          </div>
+
+          <!-- THANH GIỌNG GIẢNG CINEMA + SÓNG ÂM THANH + ĐIỀU HƯỚNG -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="audio-bar">
+              <button type="button" id="btnPlayPauseVoice" class="play-circle" title="Nghe giảng / Dừng (Phím Space)">▶</button>
+              <div class="soundwave" id="soundwaveViz" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <select id="voicePersonaSelect" class="voice-select" aria-label="Chọn giọng giảng Việt Nam truyền cảm"></select>
+              <select id="voiceRateSelect" class="voice-select" style="flex:0 0 auto;min-width:92px;" aria-label="Tốc độ giọng đọc">
+                <option value="0.88">🐢 0.88x</option>
+                <option value="1" selected>🎵 1.0x</option>
+                <option value="1.12">⚡ 1.12x</option>
+              </select>
+            </div>
+            <div id="voiceStatusLine" class="hidden" style="font-size:11.5px;font-weight:700;color:var(--gold);padding:0 4px;"></div>
+
+            <div class="bottom-nav">
+              <button type="button" id="btnPrevSlide" class="cbtn">❮ Trang Trước</button>
+              <div class="dock-group">
+                <button type="button" id="btnCopyFlowPrompt" class="cbtn cbtn-cyan" title="Sao chép câu lệnh Google Flow 16:9 của trang này">✨ Prompt Slide</button>
+                <button type="button" id="btnAskTutorBottom" class="cbtn cbtn-gold">🏛️ Hỏi Gia Sư AI</button>
+              </div>
+              <button type="button" id="btnNextSlide" class="cbtn cbtn-gold">Trang Tiếp ❯</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== CỬA SỔ NỔI: GIA SƯ AI 4 NHÂN VẬT (KÉO THẢ ĐƯỢC) ==================== -->
+  <div id="floatingTutorPanel" class="floating-tutor hidden" role="dialog" aria-label="Gia Sư AI 4 Nhân Vật">
+    <div class="tutor-header" id="tutorDragHandle">
+      <strong style="font-size:13px;color:var(--gold);">🏛️ GIA SƯ AI &amp; HỘI ĐỒNG HỌC TẬP 4D</strong>
+      <button type="button" id="btnCloseTutor" class="cbtn" style="padding:2px 8px;">✕</button>
+    </div>
+
+    <div class="tutor-personas" id="tutorPersonasBar">
+      <button type="button" class="seg-btn active" data-tutor="co_giao">👩‍🏫 Cô Giáo</button>
+      <button type="button" class="seg-btn" data-tutor="khoa_hoc">🔬 Khoa Học</button>
+      <button type="button" class="seg-btn" data-tutor="ke_chuyen">📖 Kể Chuyện</button>
+      <button type="button" class="seg-btn" data-tutor="luyen_thi">🎯 Luyện Tập</button>
+    </div>
+
+    <div id="tutorChatHistory" class="tutor-chat"></div>
+
+    <div class="tutor-chips" id="tutorQuickChips">
+      <button type="button" class="tutor-chip" data-chip="Giải thích lại trang này thật dễ hiểu bằng ví dụ đời sống nhé!">💡 Giải thích dễ hiểu hơn</button>
+      <button type="button" class="tutor-chip" data-chip="Cho con thêm 1 câu hỏi thử thách nhỏ để luyện tập trang này!">⚡ Thêm bài tập vui</button>
+      <button type="button" class="tutor-chip" data-chip="Tóm tắt trang này thành 3 ý siêu ngắn để con nhớ lâu!">🧠 Tóm tắt 3 ý nhớ lâu</button>
+    </div>
+
+    <div class="tutor-input-bar">
+      <input type="text" id="tutorInput" class="input-field" placeholder="Con muốn hỏi gì về bài học này..." />
+      <button type="button" id="btnSendTutor" class="cbtn cbtn-gold">Gửi</button>
+    </div>
+  </div>
+
+  <!-- ==================== NGĂN KÉO PHẢI: KHO BÀI HỌC & DANH MỤC TRANG ==================== -->
+  <div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+  <aside id="slidesDrawer" class="slides-drawer hidden" aria-label="Kho bài học và danh mục trang">
+    <div class="drawer-header">
+      <strong style="font-size:14px;color:var(--gold);">📑 KHO BÀI HỌC &amp; DANH MỤC TRANG</strong>
+      <button type="button" id="btnCloseDrawer" class="cbtn" style="padding:4px 9px;">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div style="display:flex;gap:6px;">
+        <button type="button" id="drawerTabSlides" class="cbtn cbtn-gold" style="flex:1;">🎞️ Các Trang Bài Này</button>
+        <button type="button" id="drawerTabLibrary" class="cbtn" style="flex:1;">📚 Kho Bài Lớp <span id="drawerGradeNum">4</span></button>
+      </div>
+      <div id="drawerContentList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div style="margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle);display:flex;flex-direction:column;gap:8px;">
+        <button type="button" id="btnImportJson" class="cbtn">📂 Nạp File Bài Giảng (.json)</button>
+        <input type="file" id="importJsonInput" accept=".json,application/json" class="hidden" />
+        <a href="./index.html" class="cbtn">📘 Chuyển sang Bản Cổ Điển</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== MODAL 1: XƯỞNG TẠO BÀI GIẢNG 4D (1 CHẠM) ==================== -->
+  <div id="factoryModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">✨ Xưởng Tạo Bài Giảng 4D Tự Động (1 Chạm)</h2>
+        <button type="button" class="cbtn" data-close-modal="factoryModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="factoryInputView" style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-size:13px;font-weight:800;margin-bottom:8px;">1️⃣ Chọn đối tượng học</div>
+            <div class="grade-cards" id="factoryGradeCards">
+              <button type="button" class="grade-card selected" data-factory-grade="4">
+                <div style="font-size:20px;">🎒</div>
+                <strong>Lớp 4 (Tiểu học)</strong>
+                <div style="font-size:11.5px;color:var(--text-muted);">Vui tươi • Đề xuất 6 trang</div>
+              </button>
+              <button type="button" class="grade-card" data-factory-grade="7">
+                <div style="font-size:20px;">🚀</div>
+                <strong>Lớp 7 (THCS)</strong>
+                <div style="font-size:11.5px;color:var(--text-muted);">Logic đời sống • 8 trang</div>
+              </button>
+              <button type="button" class="grade-card" data-factory-grade="10">
+                <div style="font-size:20px;">🎯</div>
+                <strong>Lớp 10 (THPT)</strong>
+                <div style="font-size:11.5px;color:var(--text-muted);">Feynman hệ thống • 10 trang</div>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:13px;font-weight:800;margin-bottom:8px;">2️⃣ Nạp Ảnh sách / Bìa sách / PDF / Chủ đề</div>
+            <div id="smartDropzone" class="smart-dropzone">
+              <div style="font-size:28px;">📸📄✨</div>
+              <div style="font-weight:800;font-size:14px;margin:4px 0;">Dán trực tiếp ảnh hoặc tệp (Ctrl + V) • Kéo thả vào đây</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+                Ảnh (.jpg, .png, .webp — tự nén ≤ 1280px JPEG 0.8), tệp .pdf (&lt; 10MB), .txt / .md
+              </div>
+              <div class="dock-group" style="justify-content:center;">
+                <button type="button" id="btnPickFiles" class="cbtn">📁 Chọn Ảnh / PDF / TXT</button>
+                <button type="button" id="btnCaptureCamera" class="cbtn">📷 Chụp Trang Sách</button>
+              </div>
+              <input type="file" id="factoryFileInput" class="hidden" multiple accept="image/jpeg,image/png,image/webp,.pdf,.txt,.md" />
+              <input type="file" id="factoryCameraInput" class="hidden" accept="image/*" capture="environment" />
+              <div id="attachmentsGrid" class="attachments-grid hidden"></div>
+            </div>
+
+            <textarea id="factoryTopicInput" class="input-textarea" rows="3" style="margin-top:10px;"
+              placeholder='Nhập tên chủ đề hoặc ghi chú riêng (VD: "Con hay nhầm quy đồng mẫu số, giải thích thật dễ hiểu")'></textarea>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:10px;">
+              <div class="dock-group" id="slideCountPills">
+                <span style="font-size:12.5px;font-weight:800;">📑 Số trang:</span>
+                <button type="button" class="speed-pill" data-slide-count="4">4</button>
+                <button type="button" class="speed-pill active" data-slide-count="6">6</button>
+                <button type="button" class="speed-pill" data-slide-count="8">8</button>
+                <button type="button" class="speed-pill" data-slide-count="10">10</button>
+                <button type="button" class="speed-pill" data-slide-count="12">12</button>
+              </div>
+              <label style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="factoryAutoMediaToggle" checked />
+                <span>Tự động tìm ảnh &amp; video minh họa</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="factoryErrorBox" class="alert-error hidden"></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <span id="factoryApiStatusHint" style="font-size:12px;font-weight:700;"></span>
+            <button type="button" id="btnStartGenerate" class="cbtn cbtn-hero cbtn-lg">🚀 Khởi Tạo Bài Giảng 4D</button>
+          </div>
+        </div>
+
+        <div id="factoryProgressPanel" class="hidden" style="padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--bg-soft);">
+          <div class="progress-bar-outer"><div class="progress-bar-inner" id="factoryProgressBar"></div></div>
+          <div class="steps-list">
+            <div class="step-chip" data-step="1">1. Đọc dữ liệu</div>
+            <div class="step-chip" data-step="2">2. AI biên soạn 4D</div>
+            <div class="step-chip" data-step="3">3. Tìm Ảnh &amp; Video</div>
+            <div class="step-chip" data-step="4">4. Hoàn tất!</div>
+          </div>
+          <div id="factoryProgressMsg" style="font-size:13.5px;font-weight:700;"></div>
+        </div>
+
+        <div id="factoryReviewView" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px;border-radius:12px;background:rgba(16,185,129,0.16);border:1px solid rgba(16,185,129,0.4);">
+            <div>
+              <strong id="reviewLessonTitle"></strong>
+              <div id="reviewLessonMeta" style="font-size:12px;color:var(--text-muted);"></div>
+            </div>
+            <button type="button" id="btnBackToFactoryForm" class="cbtn">➕ Tạo bài khác</button>
+          </div>
+          <div id="reviewSlidesGrid" class="review-grid"></div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
+            <button type="button" id="btnDownloadDraftJson" class="cbtn">💾 Tải File JSON Sao Lưu</button>
+            <button type="button" id="btnLaunchNewLesson" class="cbtn cbtn-emerald cbtn-lg">🎓 Bắt Đầu Học Ngay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: CHẾ ĐỘ PHỤ HUYNH ==================== -->
+  <div id="parentModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-narrow">
+      <div class="modal-header">
+        <h2 class="modal-title">👨‍👩‍👧 Chế Độ Phụ Huynh &amp; Cài Đặt API</h2>
+        <button type="button" class="cbtn" data-close-modal="parentModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="parentSettingsForm" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label for="inputGeminiKey" style="display:block;font-size:13px;font-weight:800;margin-bottom:5px;">🔑 Gemini API Key (Dùng chung cho Tạo Bài, Giọng Đọc AI &amp; Gia Sư AI)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="password" id="inputGeminiKey" class="input-field" placeholder="AIzaSy..." autocomplete="off" />
+              <button type="button" class="cbtn" data-toggle-secret="inputGeminiKey">👁️</button>
+            </div>
+          </div>
+
+          <div>
+            <label for="selectGeminiModel" style="display:block;font-size:13px;font-weight:800;margin-bottom:5px;">🤖 Model Gemini sử dụng</label>
+            <select id="selectGeminiModel" class="input-field">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Mặc định — Nhanh, ổn định)</option>
+              <option value="gemini-3.8-flash">gemini-3.8-flash (Thế hệ mới — Thông minh cao)</option>
+              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Siêu nhanh)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Chuyên sâu — tự chuyển Flash nếu bận)</option>
+              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Gọn nhẹ)</option>
+            </select>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+              <button type="button" id="btnTestGeminiApi" class="cbtn">🧪 Kiểm tra kết nối API Key</button>
+              <span id="apiTestResult" style="font-size:12px;font-weight:700;"></span>
+            </div>
+          </div>
+
+          <div>
+            <label for="inputYoutubeKey" style="display:block;font-size:13px;font-weight:800;margin-bottom:5px;">📺 YouTube Data API Key (Tùy chọn)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="password" id="inputYoutubeKey" class="input-field" placeholder="Để trống nếu không cần tự tìm video YouTube" autocomplete="off" />
+              <button type="button" class="cbtn" data-toggle-secret="inputYoutubeKey">👁️</button>
+            </div>
+          </div>
+
+          <div>
+            <label for="inputPixabayKey" style="display:block;font-size:13px;font-weight:800;margin-bottom:5px;">🖼️ Pixabay API Key (Tùy chọn — mặc định dùng Wikimedia miễn phí)</label>
+            <div style="display:flex;gap:6px;">
+              <input type="password" id="inputPixabayKey" class="input-field" placeholder="Không bắt buộc" autocomplete="off" />
+              <button type="button" class="cbtn" data-toggle-secret="inputPixabayKey">👁️</button>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px;">
+            <button type="button" class="cbtn" data-close-modal="parentModal">Hủy</button>
+            <button type="submit" class="cbtn cbtn-gold">💾 Lưu Cài Đặt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: NHẬT KÝ HỌC TẬP & RÈN LUYỆN 4D GIA ĐÌNH ==================== -->
+  <div id="journalModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title" id="journalModalTitle">📖 Nhật Ký Học Tập &amp; Rèn Luyện 4D — Lớp 4</h2>
+        <button type="button" class="cbtn" data-close-modal="journalModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <input type="date" id="journalDate" class="input-field" style="max-width:210px;" />
+          <span id="journalStreakBadge" class="slide-tag">🔥 0 ngày ghi chép</span>
+        </div>
+
+        <div class="journal-grid">
+          <div>
+            <label style="font-size:12.5px;font-weight:800;color:#38bdf8;">🧠 TRÍ — Điều con hiểu sâu nhất hôm nay:</label>
+            <textarea id="journalTri" class="input-textarea" rows="2" placeholder="VD: Con hiểu vì sao phải quy đồng mẫu số khi cộng phân số..."></textarea>
+          </div>
+          <div>
+            <label style="font-size:12.5px;font-weight:800;color:#34d399;">❤️ TÂM — Việc tử tế / Lòng biết ơn hôm nay:</label>
+            <textarea id="journalTam" class="input-textarea" rows="2" placeholder="VD: Giúp mẹ dọn bàn ăn, cảm ơn cô giáo..."></textarea>
+          </div>
+          <div>
+            <label style="font-size:12.5px;font-weight:800;color:#fb7185;">🏃 THÂN — Vận động &amp; Giấc ngủ khỏe mạnh:</label>
+            <textarea id="journalThan" class="input-textarea" rows="2" placeholder="VD: Đạp xe 20 phút, ngủ đúng 21h30..."></textarea>
+          </div>
+          <div>
+            <label style="font-size:12.5px;font-weight:800;color:#f59e0b;">🎯 MỤC TIÊU — 1 bước nhỏ ngày mai:</label>
+            <textarea id="journalGoal" class="input-textarea" rows="2" placeholder="VD: Làm xong 3 bài luyện tập mà không nhìn đáp án..."></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;">
+          <button type="button" id="btnSaveJournal" class="cbtn cbtn-emerald">💾 Lưu Nhật Ký Hôm Nay</button>
+        </div>
+
+        <div style="border-top:1px solid var(--border-subtle);padding-top:10px;">
+          <div style="font-size:12px;font-weight:800;color:var(--text-muted);margin-bottom:8px;">LỊCH SỬ TRƯỞNG THÀNH ĐÃ LƯU:</div>
+          <div id="journalHistoryList" style="display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: ĐỔI ẢNH / VIDEO MINH HỌA ==================== -->
+  <div id="mediaPickerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">🔍 Đổi Ảnh / Video Minh Họa</h2>
+        <button type="button" class="cbtn" data-close-modal="mediaPickerModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;">
+          <input type="url" id="customMediaUrlInput" class="input-field" placeholder="Dán link YouTube (youtube.com/watch?v=...) hoặc URL ảnh..." />
+          <button type="button" id="btnApplyCustomMedia" class="cbtn cbtn-gold">Áp dụng</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="liveImageSearchInput" class="input-field" placeholder="Tìm ảnh mới bằng từ khóa tiếng Anh (Pixabay / Wikimedia)..." />
+          <button type="button" id="btnLiveImageSearch" class="cbtn">🔍 Tìm ảnh</button>
+        </div>
+        <div id="pickerVideosSection" class="hidden">
+          <div style="font-size:13px;font-weight:800;margin-bottom:8px;">📺 Video YouTube gợi ý</div>
+          <div id="pickerVideosGrid" class="media-picker-grid"></div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:8px;">🖼️ Ảnh minh họa &amp; Sơ đồ SVG ngoại tuyến</div>
+          <div id="pickerImagesGrid" class="media-picker-grid"></div>
+        </div>
+        <div style="padding:10px;border-radius:10px;background:var(--bg-soft);border:1px solid var(--border-subtle);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:800;color:var(--gold);">🎬 Google Flow Prompt (16:9)</span>
+            <button type="button" id="btnCopyVisualPrompt" class="cbtn" style="padding:3px 8px;font-size:11px;">📋 Copy</button>
+          </div>
+          <div id="pickerVisualPromptText" style="font-size:12px;color:var(--text-muted);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <!-- Nạp các mô-đun sạch sẽ, dùng chung kho bài & API key với bản Cổ Điển -->
+  <script defer src="./js/media_finder.js"></script>
+  <script defer src="./js/voice_studio.js"></script>
+  <script defer src="./js/ai_lesson_factory.js"></script>
+  <script defer src="./js/sample_lessons.js"></script>
+  <script defer src="./js/cinema4d_fx.js"></script>
+  <script defer src="./js/cinema4d_app.js"></script>
+</body>
+</html>

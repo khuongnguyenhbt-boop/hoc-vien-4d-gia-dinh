@@ -1,0 +1,22 @@
+# Tệp rác hệ điều hành
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Biến môi trường & khóa bí mật (tuyệt đối không đẩy lên GitHub)
+.env
+.env.local
+.env.*.local
+*.key
+secrets.json
+
+# Tệp tạm & trình soạn thảo
+*.log
+*.tmp
+*.bak
+.vscode/
+.idea/
+node_modules/
