@@ -34,7 +34,7 @@
   <!-- ==================== THANH ĐIỀU KHIỂN RẠP CHIẾU 4D ==================== -->
   <header class="cinema-header">
     <div class="brand-wrap">
-      <a href="./index.html" class="brand-badge" title="Chuyển về bản Học Viện 4D Cổ Điển">4D</a>
+      <a href="./classic.html" class="brand-badge" title="Chuyển về bản Học Viện 4D Cổ Điển">4D</a>
       <div>
         <div class="brand-name">
           <span>HỌC VIỆN 4D CINEMA GIA ĐÌNH</span>
@@ -272,7 +272,7 @@
       <div style="margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle);display:flex;flex-direction:column;gap:8px;">
         <button type="button" id="btnImportJson" class="cbtn">📂 Nạp File Bài Giảng (.json)</button>
         <input type="file" id="importJsonInput" accept=".json,application/json" class="hidden" />
-        <a href="./index.html" class="cbtn">📘 Chuyển sang Bản Cổ Điển</a>
+        <a href="./classic.html" class="cbtn">📘 Chuyển sang Bản Cổ Điển</a>
       </div>
     </div>
   </aside>
@@ -490,11 +490,15 @@
       </div>
       <div class="modal-body">
         <div style="display:flex;gap:8px;">
-          <input type="url" id="customMediaUrlInput" class="input-field" placeholder="Dán link YouTube (youtube.com/watch?v=...) hoặc URL ảnh..." />
-          <button type="button" id="btnApplyCustomMedia" class="cbtn cbtn-gold">Áp dụng</button>
+          <input type="url" id="customMediaUrlInput" class="input-field" placeholder="Dán link YouTube (youtube.com/watch?v=...) hoặc URL ảnh để phát ngay trên màn hình..." />
+          <button type="button" id="btnApplyCustomMedia" class="cbtn cbtn-gold">▶ Phát Ngay</button>
         </div>
         <div style="display:flex;gap:8px;">
-          <input type="text" id="liveImageSearchInput" class="input-field" placeholder="Tìm ảnh mới bằng từ khóa tiếng Anh (Pixabay / Wikimedia)..." />
+          <input type="text" id="liveYoutubeSearchInput" class="input-field" placeholder="Tìm video giáo dục YouTube tiếng Việt (cần YouTube API Key trong Phụ Huynh)..." />
+          <button type="button" id="btnLiveYoutubeSearch" class="cbtn cbtn-cyan">📺 Tìm YouTube</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="liveImageSearchInput" class="input-field" placeholder="Tìm ảnh minh họa miễn phí bằng từ khóa tiếng Anh (Pixabay / Wikimedia)..." />
           <button type="button" id="btnLiveImageSearch" class="cbtn">🔍 Tìm ảnh</button>
         </div>
         <div id="pickerVideosSection" class="hidden">

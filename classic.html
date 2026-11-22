@@ -1,0 +1,495 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="origin" />
+  <title>Học Viện 4D Gia Đình — Xưởng Bài Giảng 4D Song Não 1 Chạm</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body data-grade="4">
+  <!-- ==================== THANH CÔNG CỤ CHÍNH ==================== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">🎓</div>
+      <div>
+        <h1 class="brand-title">Học Viện 4D Gia Đình</h1>
+        <p class="brand-sub">Bài giảng Song Não 4D • Tự học thông minh tại nhà</p>
+      </div>
+    </div>
+
+    <nav class="profile-switcher" aria-label="Chọn hồ sơ học sinh">
+      <button type="button" class="profile-tab active" data-profile-grade="4">🎒 Lớp 4</button>
+      <button type="button" class="profile-tab" data-profile-grade="7">🚀 Lớp 7</button>
+      <button type="button" class="profile-tab" data-profile-grade="10">🎯 Lớp 10</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <a href="./index.html" class="btn btn-primary" title="Mở phiên bản Rạp Chiếu 4D Cinema Gia Đình (Có Bảng Vẽ, 432Hz, Gia Sư AI & Nhật Ký 4D)">
+        🎬 Bản 4D Cinema
+      </a>
+      <button type="button" id="btnOpenFactoryMain" class="btn btn-hero">
+        ✨ Tạo Bài Học Mới (1 Chạm)
+      </button>
+      <button type="button" id="btnOpenParentMode" class="btn btn-secondary">
+        👨‍👩‍👧 Chế Độ Phụ Huynh
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== KHÔNG GIAN HỌC TẬP CHÍNH ==================== -->
+  <main class="app-shell">
+    <!-- Danh sách bài học theo hồ sơ con -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title" id="sidebarProfileTitle">📚 Kho Bài Học — Lớp 4</h2>
+        <span class="star-badge" id="profileStarsBadge">⭐ 0 sao</span>
+      </div>
+
+      <div id="lessonList" class="lesson-list"></div>
+
+      <div class="sidebar-footer">
+        <button type="button" id="btnImportJson" class="btn btn-secondary btn-sm">
+          📂 Nạp File Bài Giảng (.json)
+        </button>
+        <input type="file" id="importJsonInput" accept=".json,application/json" class="hidden" />
+      </div>
+    </aside>
+
+    <!-- Trình phát bài giảng 4D -->
+    <section class="stage-card" id="lessonStage" aria-live="polite">
+      <div class="stage-top">
+        <div>
+          <div class="lesson-badges">
+            <span class="pill" id="stageGradeBadge">Lớp 4</span>
+            <span class="pill pill-neutral" id="stageSubjectBadge">Toán học</span>
+            <span class="pill pill-neutral" id="stagePageBadge">Trang 1 / 2</span>
+          </div>
+          <h2 class="slide-heading" id="slideHeading">Đang tải bài giảng...</h2>
+        </div>
+
+        <div class="inline-row">
+          <button type="button" id="btnDownloadCurrentJson" class="btn btn-secondary btn-sm" title="Lưu bài giảng hiện tại thành file JSON">
+            💾 Lưu JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="slide-progress-bar" aria-hidden="true">
+        <div class="slide-progress-fill" id="slideProgressFill" style="width: 50%"></div>
+      </div>
+
+      <!-- Khung Media 16:9 (YouTube / Ảnh / SVG Zero-Empty-Slide) -->
+      <div class="media-wrapper" id="slideMediaFrame"></div>
+
+      <div class="media-bar">
+        <span class="media-source-tag" id="slideMediaSource">🎨 Nguồn: Sơ đồ minh họa AI (SVG)</span>
+        <div class="inline-row">
+          <a id="btnOpenYoutubeExternal" class="btn btn-secondary btn-sm hidden" href="#" target="_blank" rel="noopener noreferrer">
+            ▶ Mở trên YouTube
+          </a>
+          <button type="button" id="btnQuickNextVideo" class="btn btn-secondary btn-sm hidden">
+            🔄 Đổi video khác
+          </button>
+          <button type="button" id="btnChangeSlideMedia" class="btn btn-secondary btn-sm">
+            🔍 Đổi ảnh/video khác
+          </button>
+        </div>
+      </div>
+
+      <!-- Thông điệp trái tim -->
+      <div class="heart-banner">
+        <span class="heart-icon" aria-hidden="true">💡</span>
+        <p class="heart-text" id="slideHeartMessage"></p>
+      </div>
+
+      <!-- Khu vực Song Não: Lời giảng giọng đọc + Thẻ lật 3D -->
+      <div class="dual-brain-grid">
+        <div class="panel-box">
+          <div class="panel-label">
+            <span>🎙️ Lời Giảng Song Não</span>
+            <div class="tts-controls">
+              <button type="button" id="btnSpeakScript" class="btn btn-primary btn-sm">🔊 Nghe giảng</button>
+              <button type="button" id="btnStopSpeak" class="btn btn-secondary btn-sm hidden">⏹️ Dừng</button>
+            </div>
+          </div>
+
+          <!-- Thanh chọn giọng giảng Việt Nam truyền cảm -->
+          <div class="voice-toolbar">
+            <select id="voicePersonaSelect" class="voice-select" aria-label="Chọn giọng giảng bài tiếng Việt"></select>
+            <select id="voiceRateSelect" class="voice-rate-select" aria-label="Tốc độ đọc">
+              <option value="0.88">🐢 0.88x Chậm</option>
+              <option value="1" selected>🎵 1.0x Chuẩn</option>
+              <option value="1.12">⚡ 1.12x Nhanh</option>
+            </select>
+          </div>
+          <div id="voiceStatusNote" class="voice-status-note hidden"></div>
+
+          <p class="script-text" id="slideScript"></p>
+        </div>
+
+        <div class="flip-scene" id="flipCardScene" tabindex="0" role="button" aria-label="Bấm để lật thẻ tư duy 3D">
+          <div class="flip-card" id="flipCardInner">
+            <div class="flip-face flip-front">
+              <span class="flip-tag" id="flipFrontLabel">❌ Hay nhầm lẫn</span>
+              <div class="flip-body" id="flipBeforeText"></div>
+              <span class="flip-hint">👆 Chạm vào thẻ để lật sang góc nhìn 4D</span>
+            </div>
+            <div class="flip-face flip-back">
+              <span class="flip-tag" id="flipBackLabel">✨ À ha! Hóa ra là thế!</span>
+              <div class="flip-body" id="flipAfterText"></div>
+              <span class="flip-hint">🔄 Chạm lần nữa để xem lại</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trắc nghiệm kiểm tra nhanh -->
+      <div class="quiz-box">
+        <div class="panel-label">
+          <span>⚡ Thử Thách 15 Giây (Quick Check)</span>
+        </div>
+        <p class="quiz-question" id="quizQuestion"></p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback hidden" id="quizFeedback"></div>
+      </div>
+
+      <!-- Thanh điều hướng trang -->
+      <div class="stage-nav">
+        <button type="button" id="btnPrevSlide" class="btn btn-secondary">⬅️ Trang trước</button>
+        <span id="stageLessonTitleSmall" style="font-size: 13px; font-weight: 700; color: var(--text-muted);"></span>
+        <button type="button" id="btnNextSlide" class="btn btn-primary">Trang tiếp theo ➡️</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL 1: XƯỞNG TẠO BÀI GIẢNG 4D (1 CHẠM) ==================== -->
+  <div id="factoryModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="factoryModalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title" id="factoryModalTitle">✨ Xưởng Tạo Bài Giảng 4D Tự Động (1 Chạm)</h2>
+        <button type="button" class="modal-close" data-close-modal="factoryModal" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Phần nhập liệu chính (ẩn đi khi đang chạy tiến trình hoặc xem kết quả Bước 4) -->
+        <div id="factoryInputView" style="display: flex; flex-direction: column; gap: 18px;">
+          <!-- Khu vực 1: Chọn đối tượng học -->
+          <div>
+            <h3 class="section-heading">1️⃣ Chọn đối tượng học</h3>
+            <div class="grade-cards" id="factoryGradeCards">
+              <button type="button" class="grade-card selected" data-factory-grade="4">
+                <div class="grade-card-emoji">🎒</div>
+                <div class="grade-card-name">Lớp 4 (Tiểu học)</div>
+                <div class="grade-card-desc">Vui tươi • Đề xuất 6 trang</div>
+              </button>
+              <button type="button" class="grade-card" data-factory-grade="7">
+                <div class="grade-card-emoji">🚀</div>
+                <div class="grade-card-name">Lớp 7 (THCS)</div>
+                <div class="grade-card-desc">Logic thực tế • Đề xuất 8 trang</div>
+              </button>
+              <button type="button" class="grade-card" data-factory-grade="10">
+                <div class="grade-card-emoji">🎯</div>
+                <div class="grade-card-name">Lớp 10 (THPT)</div>
+                <div class="grade-card-desc">Feynman & Hệ thống • 10 trang</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Khu vực 2: Hộp Nạp Dữ Liệu Đa Năng (Smart Dropzone) -->
+          <div>
+            <h3 class="section-heading">2️⃣ Hộp Nạp Dữ Liệu Đa Năng (Ảnh sách / Bìa sách / PDF / Chủ đề)</h3>
+            <div id="smartDropzone" class="smart-dropzone">
+              <div class="dropzone-icon" aria-hidden="true">📸📄✨</div>
+              <p class="dropzone-title">
+                Dán trực tiếp ảnh (<span class="paste-kbd">Ctrl + V</span>) hoặc Kéo thả tệp vào đây
+              </p>
+              <p class="dropzone-sub">
+                Hỗ trợ nhiều ảnh (.jpg, .png, .webp — tự động nén gọn 1280px), tệp .pdf (&lt; 10MB), .txt / .md
+              </p>
+
+              <div class="dropzone-buttons">
+                <button type="button" id="btnPickFiles" class="btn btn-secondary btn-sm">
+                  📁 Chọn Ảnh / PDF / TXT
+                </button>
+                <button type="button" id="btnCaptureCamera" class="btn btn-secondary btn-sm">
+                  📷 Chụp Trực Tiếp Trang Sách
+                </button>
+              </div>
+
+              <!-- Input chọn nhiều tệp -->
+              <input
+                type="file"
+                id="factoryFileInput"
+                class="hidden"
+                multiple
+                accept="image/jpeg,image/png,image/webp,.pdf,.txt,.md"
+              />
+              <!-- Input chụp trực tiếp từ camera sau (điện thoại / máy tính bảng) -->
+              <input
+                type="file"
+                id="factoryCameraInput"
+                class="hidden"
+                accept="image/*"
+                capture="environment"
+              />
+
+              <!-- Danh sách xem trước ảnh đã nén & tài liệu -->
+              <div id="attachmentsGrid" class="attachments-grid hidden"></div>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <label for="factoryTopicInput" class="section-heading" style="margin-bottom: 6px;">
+                ✍️ Tên chủ đề hoặc ghi chú riêng của phụ huynh (tùy chọn nếu đã có ảnh/tệp)
+              </label>
+              <textarea
+                id="factoryTopicInput"
+                class="input-textarea"
+                placeholder='Ví dụ: "Quy đồng mẫu số phân số — Con hay nhầm phần nhân tử số, giải thích thật dễ hiểu bằng ví dụ chia bánh"'
+              ></textarea>
+            </div>
+
+            <div class="factory-controls-row" style="margin-top: 12px;">
+              <div class="slide-count-picker">
+                <span style="font-size: 13.5px; font-weight: 800;">📑 Số trang bài giảng:</span>
+                <div class="count-pills" id="slideCountPills">
+                  <button type="button" class="count-pill" data-slide-count="4">4</button>
+                  <button type="button" class="count-pill active" data-slide-count="6">6</button>
+                  <button type="button" class="count-pill" data-slide-count="8">8</button>
+                  <button type="button" class="count-pill" data-slide-count="10">10</button>
+                  <button type="button" class="count-pill" data-slide-count="12">12</button>
+                </div>
+              </div>
+
+              <label class="toggle-label">
+                <span class="toggle-switch">
+                  <input type="checkbox" id="factoryAutoMediaToggle" checked />
+                  <span class="toggle-slider"></span>
+                </span>
+                <span>Tự động tìm ảnh &amp; video minh họa</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cảnh báo lỗi đặt ngay sát nút Khởi Tạo để phụ huynh nhìn thấy lập tức -->
+          <div id="factoryErrorBox" class="alert-box alert-error hidden"></div>
+
+          <!-- Khu vực 3: Nút hành động chính -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <span id="factoryApiStatusHint" style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;"></span>
+            <button type="button" id="btnStartGenerate" class="btn btn-hero btn-lg">
+              🚀 Khởi Tạo Bài Giảng 4D
+            </button>
+          </div>
+        </div>
+
+        <!-- Thanh tiến trình 4 bước trực quan -->
+        <div id="factoryProgressPanel" class="progress-panel hidden">
+          <div class="progress-bar-outer">
+            <div class="progress-bar-inner" id="factoryProgressBar"></div>
+          </div>
+          <div class="steps-list">
+            <div class="step-chip" data-step="1">1. Đọc dữ liệu</div>
+            <div class="step-chip" data-step="2">2. AI biên soạn 4D</div>
+            <div class="step-chip" data-step="3">3. Tìm Ảnh &amp; Video</div>
+            <div class="step-chip" data-step="4">4. Hoàn tất!</div>
+          </div>
+          <p class="progress-live-msg" id="factoryProgressMsg">Đang chuẩn bị...</p>
+        </div>
+
+        <!-- Màn hình Bước 4: Xem nhanh danh sách slide + Đổi ảnh/video + Bắt đầu học -->
+        <div id="factoryReviewView" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="review-header">
+            <div>
+              <strong id="reviewLessonTitle" style="font-size: 16px;"></strong>
+              <div id="reviewLessonMeta" style="font-size: 12.5px; color: #065f46; font-weight: 600;"></div>
+            </div>
+            <button type="button" id="btnBackToFactoryForm" class="btn btn-secondary btn-sm">
+              ➕ Tạo bài khác
+            </button>
+          </div>
+
+          <div id="reviewSlidesGrid" class="review-grid"></div>
+
+          <div class="review-actions">
+            <button type="button" id="btnDownloadDraftJson" class="btn btn-secondary">
+              💾 Tải File JSON Sao Lưu
+            </button>
+            <button type="button" id="btnLaunchNewLesson" class="btn btn-success btn-lg">
+              🎓 Bắt Đầu Học Ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: CHẾ ĐỘ PHỤ HUYNH (CÀI ĐẶT API) ==================== -->
+  <div id="parentModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="parentModalTitle">
+    <div class="modal-dialog modal-narrow">
+      <div class="modal-header">
+        <h2 class="modal-title" id="parentModalTitle">👨‍👩‍👧 Chế Độ Phụ Huynh &amp; Cài Đặt API</h2>
+        <button type="button" class="modal-close" data-close-modal="parentModal" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert-box alert-info" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <span>Tạo nhanh bài giảng mới từ ảnh chụp sách giáo khoa hoặc bìa sách:</span>
+          <button type="button" id="btnOpenFactoryFromParent" class="btn btn-hero btn-sm">
+            ✨ Tạo Bài Học Mới (1 Chạm)
+          </button>
+        </div>
+
+        <form id="parentSettingsForm" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="form-group">
+            <label for="inputGeminiKey">🔑 Gemini API Key (Bắt buộc để AI tạo bài giảng)</label>
+            <div class="inline-row">
+              <input
+                type="password"
+                id="inputGeminiKey"
+                class="input-field"
+                placeholder="AIzaSy..."
+                autocomplete="off"
+              />
+              <button type="button" class="btn btn-secondary btn-sm" data-toggle-secret="inputGeminiKey">👁️</button>
+            </div>
+            <span class="form-help">
+              Khóa chỉ lưu cục bộ ngay trên trình duyệt máy gia đình (localStorage), không gửi tới máy chủ trung gian.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="selectGeminiModel">🤖 Model Gemini sử dụng</label>
+            <select id="selectGeminiModel" class="input-field">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Mặc định — Nhanh, chuẩn đa phương thức)</option>
+              <option value="gemini-3.8-flash">gemini-3.8-flash (Thế hệ mới — Thông minh &amp; ổn định cao)</option>
+              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Siêu nhanh, tiết kiệm hạn mức)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Chuyên sâu — tự chuyển Flash nếu bận)</option>
+              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Gọn nhẹ)</option>
+            </select>
+            <div class="inline-row" style="margin-top: 4px;">
+              <button type="button" id="btnTestGeminiApi" class="btn btn-secondary btn-sm">
+                🧪 Kiểm tra kết nối API Key
+              </button>
+              <span id="apiTestResult" style="font-size: 12.5px; font-weight: 700;"></span>
+            </div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0;" />
+
+          <div class="form-group">
+            <label for="inputYoutubeKey">📺 YouTube Data API Key (Tùy chọn — không bắt buộc)</label>
+            <div class="inline-row">
+              <input
+                type="password"
+                id="inputYoutubeKey"
+                class="input-field"
+                placeholder="Để trống nếu không cần tự tìm video YouTube"
+                autocomplete="off"
+              />
+              <button type="button" class="btn btn-secondary btn-sm" data-toggle-secret="inputYoutubeKey">👁️</button>
+            </div>
+            <span class="form-help">
+              Nếu có key, hệ thống tự tìm 3 video giáo dục an toàn (safeSearch=strict, nhúng trực tiếp) cho từng trang.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="inputPixabayKey">🖼️ Pixabay API Key (Tùy chọn — không bắt buộc)</label>
+            <div class="inline-row">
+              <input
+                type="password"
+                id="inputPixabayKey"
+                class="input-field"
+                placeholder="Để trống sẽ tự động dùng Wikimedia Commons miễn phí 100%"
+                autocomplete="off"
+              />
+              <button type="button" class="btn btn-secondary btn-sm" data-toggle-secret="inputPixabayKey">👁️</button>
+            </div>
+            <span class="form-help">
+              Không cần nhập key vẫn tự động tìm ảnh Wikimedia Commons + vẽ sơ đồ SVG ngoại tuyến cho mọi slide!
+            </span>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;">
+            <button type="button" class="btn btn-secondary" data-close-modal="parentModal">Hủy</button>
+            <button type="submit" class="btn btn-primary">💾 Lưu Cài Đặt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: ĐỔI ẢNH / VIDEO MINH HỌA ==================== -->
+  <div id="mediaPickerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="mediaPickerTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title" id="mediaPickerTitle">🔍 Đổi Ảnh / Video Minh Họa</h2>
+        <button type="button" class="modal-close" data-close-modal="mediaPickerModal" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Dán link trực tiếp trong 1 giây -->
+        <div class="form-group">
+          <label for="customMediaUrlInput">🔗 Dán nhanh link YouTube hoặc URL ảnh khác</label>
+          <div class="inline-row">
+            <input
+              type="url"
+              id="customMediaUrlInput"
+              class="input-field"
+              placeholder="https://www.youtube.com/watch?v=... hoặc https://.../hinh-anh.jpg"
+            />
+            <button type="button" id="btnApplyCustomMedia" class="btn btn-primary btn-sm">Áp dụng</button>
+          </div>
+        </div>
+
+        <!-- Tìm thêm ảnh trực tiếp -->
+        <div class="form-group">
+          <label for="liveImageSearchInput">🌐 Tìm thêm ảnh minh họa (Pixabay / Wikimedia Commons)</label>
+          <div class="inline-row">
+            <input
+              type="text"
+              id="liveImageSearchInput"
+              class="input-field"
+              placeholder="Nhập từ khóa tiếng Anh (VD: solar system diagram)..."
+            />
+            <button type="button" id="btnLiveImageSearch" class="btn btn-secondary btn-sm">🔍 Tìm ảnh</button>
+          </div>
+        </div>
+
+        <!-- Gợi ý Video YouTube -->
+        <div id="pickerVideosSection" class="hidden">
+          <h3 class="section-heading">📺 Video YouTube gợi ý</h3>
+          <div id="pickerVideosGrid" class="media-picker-grid"></div>
+        </div>
+
+        <!-- Gợi ý Ảnh Minh Họa -->
+        <div>
+          <h3 class="section-heading">🖼️ Ảnh minh họa &amp; Sơ đồ SVG ngoại tuyến</h3>
+          <div id="pickerImagesGrid" class="media-picker-grid"></div>
+        </div>
+
+        <!-- Visual Prompt cho Google Flow -->
+        <div class="panel-box" style="padding: 12px;">
+          <div class="panel-label" style="margin-bottom: 6px;">
+            <span>🎬 Câu lệnh tạo ảnh/video 16:9 riêng (Google Flow Prompt)</span>
+            <button type="button" id="btnCopyVisualPrompt" class="btn btn-secondary btn-sm">📋 Sao chép</button>
+          </div>
+          <p id="pickerVisualPromptText" style="margin: 0; font-size: 12.5px; color: var(--text-muted);"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thông báo nhanh -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <!-- Scripts nạp theo thứ tự sạch sẽ (hỗ trợ chạy trực tiếp file:// và GitHub Pages) -->
+  <script defer src="./js/media_finder.js"></script>
+  <script defer src="./js/voice_studio.js"></script>
+  <script defer src="./js/ai_lesson_factory.js"></script>
+  <script defer src="./js/sample_lessons.js"></script>
+  <script defer src="./js/app.js"></script>
+</body>
+</html>
+

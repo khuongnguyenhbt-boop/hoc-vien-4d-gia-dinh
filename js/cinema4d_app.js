@@ -991,6 +991,9 @@
     const ctx = getPickerCtx();
     if (!ctx || !ctx.slide) return;
     dom.customMediaUrlInput.value = '';
+    if (dom.liveYoutubeSearchInput) {
+      dom.liveYoutubeSearchInput.value = ctx.slide.youtube_search_query || ctx.slide.heading || '';
+    }
     dom.liveImageSearchInput.value = ctx.slide.image_search_query || ctx.slide.heading || '';
     dom.pickerVisualPromptText.textContent = ctx.slide.visual_prompt || '';
     renderPickerChoices(ctx.slide);
@@ -1047,6 +1050,7 @@
       'journalModal', 'journalModalTitle', 'journalDate', 'journalStreakBadge',
       'journalTri', 'journalTam', 'journalThan', 'journalGoal', 'btnSaveJournal', 'journalHistoryList',
       'mediaPickerModal', 'customMediaUrlInput', 'btnApplyCustomMedia',
+      'liveYoutubeSearchInput', 'btnLiveYoutubeSearch',
       'liveImageSearchInput', 'btnLiveImageSearch', 'pickerVideosSection',
       'pickerVideosGrid', 'pickerImagesGrid', 'pickerVisualPromptText', 'btnCopyVisualPrompt',
       'toast'
@@ -1564,6 +1568,30 @@
         showToast('⚠️ Vui lòng dán link YouTube hoặc URL ảnh hợp lệ.');
       }
     });
+    if (dom.btnLiveYoutubeSearch) {
+      dom.btnLiveYoutubeSearch.addEventListener('click', async () => {
+        const ctx = getPickerCtx();
+        const q = (dom.liveYoutubeSearchInput && dom.liveYoutubeSearchInput.value.trim()) || '';
+        if (!ctx || !q) return;
+        const ytKey = String(state.settings.youtubeApiKey || '').trim();
+        if (!ytKey) {
+          showToast('⚠️ Chưa nhập YouTube Data API Key trong mục Phụ Huynh — bạn có thể dán trực tiếp link YouTube vào ô phía trên!');
+          return;
+        }
+        dom.btnLiveYoutubeSearch.disabled = true;
+        dom.btnLiveYoutubeSearch.textContent = '⏳ Đang tìm...';
+        try {
+          const vids = await global.MediaFinder.searchYouTubeVideos(q, ytKey);
+          if (!ctx.slide.media_candidates) ctx.slide.media_candidates = { videos: [], images: [] };
+          ctx.slide.media_candidates.videos = vids;
+          renderPickerChoices(ctx.slide);
+          showToast(vids.length ? `📺 Tìm thấy ${vids.length} video YouTube phát trực tiếp được!` : 'Không tìm thấy video phù hợp. Thử từ khóa khác nhé!');
+        } finally {
+          dom.btnLiveYoutubeSearch.disabled = false;
+          dom.btnLiveYoutubeSearch.textContent = '📺 Tìm YouTube';
+        }
+      });
+    }
     dom.btnLiveImageSearch.addEventListener('click', async () => {
       const ctx = getPickerCtx();
       const q = dom.liveImageSearchInput.value.trim();
