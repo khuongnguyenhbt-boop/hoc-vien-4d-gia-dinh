@@ -51,7 +51,7 @@
     },
     settings: {
       geminiApiKey: '',
-      geminiModel: 'gemini-2.5-flash',
+      geminiModel: 'gemini-3.5-flash-lite',
       youtubeApiKey: '',
       pixabayApiKey: '',
       voiceId: 'ai_co_minh_chau',
@@ -101,6 +101,10 @@
     try {
       const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
       if (s && typeof s === 'object') Object.assign(state.settings, s);
+      // Tự động nâng cấp model cũ bị Google khóa (404) sang gemini-3.5-flash-lite
+      if (['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'].includes(state.settings.geminiModel)) {
+        state.settings.geminiModel = 'gemini-3.5-flash-lite';
+      }
     } catch (_e) {}
 
     try {
@@ -718,7 +722,7 @@
       : '';
 
     const tryModels = Array.from(
-      new Set([state.settings.geminiModel || 'gemini-2.5-flash', ...(global.AILessonFactory.FALLBACK_MODELS || [])])
+      new Set([state.settings.geminiModel || 'gemini-3.5-flash-lite', ...(global.AILessonFactory.FALLBACK_MODELS || [])])
     );
 
     let answer = '';
@@ -1380,7 +1384,7 @@
     // Parent Settings Modal
     dom.btnOpenParent.addEventListener('click', () => {
       dom.inputGeminiKey.value = state.settings.geminiApiKey || '';
-      dom.selectGeminiModel.value = state.settings.geminiModel || 'gemini-2.5-flash';
+      dom.selectGeminiModel.value = state.settings.geminiModel || 'gemini-3.5-flash-lite';
       dom.inputYoutubeKey.value = state.settings.youtubeApiKey || '';
       dom.inputPixabayKey.value = state.settings.pixabayApiKey || '';
       dom.apiTestResult.textContent = '';
@@ -1631,6 +1635,117 @@
     });
   }
 
+  /* ==================== CHIA SẺ BÀI GIẢNG QUA LINK ==================== */
+  function bytesToBase64Url(bytes) {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function base64UrlToBytes(str) {
+    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  async function encodeLessonForUrl(lesson) {
+    // Loại bỏ danh sách ứng viên dự phòng để link ngắn gọn nhất
+    const slim = JSON.parse(JSON.stringify(lesson));
+    if (Array.isArray(slim.slides)) {
+      slim.slides.forEach((s) => { delete s.media_candidates; });
+    }
+    const rawBytes = new TextEncoder().encode(JSON.stringify(slim));
+    if (typeof CompressionStream === 'function') {
+      const cs = new CompressionStream('gzip');
+      const writer = cs.writable.getWriter();
+      writer.write(rawBytes);
+      writer.close();
+      const compressed = new Uint8Array(await new Response(cs.readable).arrayBuffer());
+      return 'gz_' + bytesToBase64Url(compressed);
+    }
+    return 'u8_' + bytesToBase64Url(rawBytes);
+  }
+
+  async function decodeLessonFromUrl(token) {
+    if (!token) return null;
+    if (token.startsWith('gz_') && typeof DecompressionStream === 'function') {
+      const bytes = base64UrlToBytes(token.slice(3));
+      const ds = new DecompressionStream('gzip');
+      const writer = ds.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      const text = await new Response(ds.readable).text();
+      return JSON.parse(text);
+    }
+    const raw = token.startsWith('u8_') ? token.slice(3) : token;
+    const text = new TextDecoder().decode(base64UrlToBytes(raw));
+    return JSON.parse(text);
+  }
+
+  async function shareCurrentLesson() {
+    const lesson = getActiveLesson();
+    if (!lesson) {
+      showToast('⚠️ Chưa có bài giảng nào để chia sẻ.');
+      return;
+    }
+    try {
+      const token = await encodeLessonForUrl(lesson);
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}#share=${token}`;
+      if (shareUrl.length > 32000) {
+        // Bài quá dài -> tải JSON để gửi qua Zalo
+        const blob = new Blob([JSON.stringify(lesson, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `bai_giang_4d_${Date.now()}.json`;
+        a.click();
+        showToast('📦 Bài giảng có nhiều nội dung — đã tải file .json để anh gửi qua Zalo (người nhận bấm "Nạp File Bài Giảng")!');
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('🔗 Đã sao chép LINK CHIA SẺ bài giảng này! Gửi cho người khác mở là thấy đúng bài này ngay.');
+      } else {
+        window.prompt('Sao chép đường link chia sẻ bài giảng dưới đây:', shareUrl);
+      }
+    } catch (err) {
+      console.error('Share lesson error:', err);
+      showToast('⚠️ Không tạo được link chia sẻ: ' + err.message);
+    }
+  }
+
+  async function checkSharedLessonInUrl() {
+    const hash = window.location.hash || '';
+    if (!hash.startsWith('#share=')) return;
+    const token = hash.slice('#share='.length).trim();
+    if (!token) return;
+    try {
+      const sharedLesson = await decodeLessonFromUrl(token);
+      if (sharedLesson && sharedLesson.title && Array.isArray(sharedLesson.slides) && sharedLesson.slides.length > 0) {
+        const existingIdx = state.lessons.findIndex((l) => l.id === sharedLesson.id);
+        if (existingIdx >= 0) {
+          state.lessons[existingIdx] = sharedLesson;
+        } else {
+          state.lessons.unshift(sharedLesson);
+        }
+        saveLessons();
+        state.activeGrade = Number(sharedLesson.grade) || 4;
+        state.activeLessonId = sharedLesson.id;
+        state.activeSlideIndex = 0;
+        // Xóa hash cho gọn địa chỉ
+        try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_e) {}
+        renderStage();
+        showToast(`🎁 Đã mở bài giảng được chia sẻ: "${sharedLesson.title}"!`);
+      }
+    } catch (err) {
+      console.error('Decode shared lesson error:', err);
+      showToast('⚠️ Đường link bài giảng chia sẻ không hợp lệ hoặc bị cắt bớt.');
+    }
+  }
+
   function init() {
     cacheDom();
     loadStorage();
@@ -1644,7 +1759,10 @@
     }
     populateVoices();
     bindEvents();
+    const btnShare = $('btnShareLesson');
+    if (btnShare) btnShare.addEventListener('click', shareCurrentLesson);
     renderStage();
+    checkSharedLessonInUrl();
   }
 
   document.addEventListener('DOMContentLoaded', init);
