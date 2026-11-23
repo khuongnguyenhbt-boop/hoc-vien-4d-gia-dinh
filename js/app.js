@@ -21,7 +21,7 @@
     starsByGrade: { 4: 0, 7: 0, 10: 0 },
     settings: {
       geminiApiKey: '',
-      geminiModel: 'gemini-2.5-flash',
+      geminiModel: 'gemini-3.5-flash-lite',
       youtubeApiKey: '',
       pixabayApiKey: '',
       voiceId: 'ai_co_minh_chau',
