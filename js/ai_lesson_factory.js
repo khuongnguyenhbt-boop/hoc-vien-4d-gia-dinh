@@ -14,7 +14,14 @@
   const MAX_PDF_BYTES = 10 * 1024 * 1024; // 10MB
   const MAX_TEXT_BYTES = 2 * 1024 * 1024; // 2MB
   const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
-  const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+  const FALLBACK_MODELS = [
+    'gemini-3.5-flash-lite',
+    'gemini-flash-lite-latest',
+    'gemini-3.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash'
+  ];
   const GEMINI_TIMEOUT_MS = 95000;
 
   const GRADE_PROFILES = {
@@ -552,15 +559,24 @@ Nhiệm vụ của bạn là đọc hiểu đầu vào đa phương thức (ản
     let apiJson = null;
     let usedModel = activeModel;
     let lastErrorMessage = '';
+    let primaryErrorMessage = '';
 
-    for (let mIdx = 0; mIdx < modelQueue.length; mIdx++) {
-      const candidateModel = modelQueue[mIdx];
+    // Bổ sung retry tự động cho model chính nếu gặp quá tải tạm thời (503/429)
+    const retryQueue = [modelQueue[0], ...modelQueue];
+
+    for (let mIdx = 0; mIdx < retryQueue.length; mIdx++) {
+      const candidateModel = retryQueue[mIdx];
       usedModel = candidateModel;
 
       if (mIdx === 0) {
         onStage(2, `AI (${candidateModel}) đang biên soạn bài giảng 4D Song Não & Trắc nghiệm...`, {
           percent: 42
         });
+      } else if (mIdx === 1 && candidateModel === retryQueue[0]) {
+        onStage(2, `Máy chủ AI đang đông nhẹ — đang tự động thử lại ${candidateModel}...`, {
+          percent: 44
+        });
+        await new Promise((r) => setTimeout(r, 2200));
       } else {
         onStage(
           2,
@@ -588,6 +604,7 @@ Nhiệm vụ của bạn là đọc hiểu đầu vào đa phương thức (ản
         clearTimeout(timeoutId);
         if (fetchErr && fetchErr.name === 'AbortError') {
           lastErrorMessage = `Model ${candidateModel} phản hồi quá lâu (hết 95 giây).`;
+          if (!primaryErrorMessage) primaryErrorMessage = lastErrorMessage;
           continue;
         }
         throw new Error(
@@ -621,6 +638,9 @@ Nhiệm vụ của bạn là đọc hiểu đầu vào đa phương thức (ản
       }
 
       lastErrorMessage = translateGeminiError(response.status, errData);
+      if (mIdx === 0 && response.status !== 404) {
+        primaryErrorMessage = lastErrorMessage;
+      }
 
       // Các lỗi do model không hỗ trợ / hạn mức Pro / quá tải tạm -> tự động thử model tiếp theo
       const canFallback =
@@ -630,8 +650,8 @@ Nhiệm vụ của bạn là đọc hiểu đầu vào đa phương thức (ản
         response.status === 500 ||
         (response.status === 403 && !/API_KEY/i.test(rawErrMsg));
 
-      if (!canFallback || mIdx === modelQueue.length - 1) {
-        throw new Error(lastErrorMessage);
+      if (!canFallback || mIdx === retryQueue.length - 1) {
+        throw new Error(primaryErrorMessage || lastErrorMessage);
       }
     }
 
