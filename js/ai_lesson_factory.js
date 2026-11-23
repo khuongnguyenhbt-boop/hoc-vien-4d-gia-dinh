@@ -13,8 +13,8 @@
   const JPEG_QUALITY = 0.8;
   const MAX_PDF_BYTES = 10 * 1024 * 1024; // 10MB
   const MAX_TEXT_BYTES = 2 * 1024 * 1024; // 2MB
-  const DEFAULT_MODEL = 'gemini-2.5-flash';
-  const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.0-flash'];
+  const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+  const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
   const GEMINI_TIMEOUT_MS = 95000;
 
   const GRADE_PROFILES = {
@@ -436,7 +436,7 @@ Nhiệm vụ của bạn là đọc hiểu đầu vào đa phương thức (ản
       return 'Gemini API Key bị từ chối hoặc chưa được kích hoạt (Mã 403). Vui lòng kiểm tra lại khóa API trong "Chế Độ Phụ Huynh".';
     }
     if (status === 404) {
-      return `Không tìm thấy model AI đã chọn (Mã 404). Vui lòng chọn lại model "gemini-2.5-flash" trong "Chế Độ Phụ Huynh".`;
+      return `Không tìm thấy model AI đã chọn (Mã 404). Vui lòng chọn lại model "gemini-3.5-flash-lite" trong "Chế Độ Phụ Huynh".`;
     }
     if (status === 429) {
       return 'Tài khoản Gemini API đang tạm hết hạn mức miễn phí trong phút này (Mã 429). Vui lòng đợi khoảng 30-60 giây rồi bấm thử lại.';
