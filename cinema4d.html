@@ -68,6 +68,7 @@
       <button type="button" id="btnToggleTutor" class="cbtn cbtn-gold" title="Mở Gia Sư AI 4 Nhân Vật">🏛️ Gia Sư AI</button>
       <button type="button" id="btnOpenJournal" class="cbtn cbtn-emerald" title="Nhật ký học tập & rèn luyện 4D">📖 Nhật Ký</button>
       <button type="button" id="btnOpenParent" class="cbtn" title="Cài đặt API Phụ huynh">👨‍👩‍👧 Phụ Huynh</button>
+      <button type="button" id="btnShareLesson" class="cbtn cbtn-emerald" title="Tạo đường link chia sẻ bài giảng này sang điện thoại / máy khác">🔗 Chia Sẻ Bài</button>
       <button type="button" id="btnOpenDrawer" class="cbtn cbtn-cyan" title="Kho bài học & Danh mục trang">
         📑 <span id="slideCounterLabel">1 / 2</span>
       </button>
@@ -400,11 +401,10 @@
           <div>
             <label for="selectGeminiModel" style="display:block;font-size:13px;font-weight:800;margin-bottom:5px;">🤖 Model Gemini sử dụng</label>
             <select id="selectGeminiModel" class="input-field">
-              <option value="gemini-2.5-flash">gemini-2.5-flash (Mặc định — Nhanh, ổn định)</option>
+              <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite (Mặc định — Siêu nhanh, ổn định nhất)</option>
               <option value="gemini-3.8-flash">gemini-3.8-flash (Thế hệ mới — Thông minh cao)</option>
-              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Siêu nhanh)</option>
-              <option value="gemini-2.5-pro">gemini-2.5-pro (Chuyên sâu — tự chuyển Flash nếu bận)</option>
-              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Gọn nhẹ)</option>
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Chỉ dành cho tài khoản cũ)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Chuyên sâu — tài khoản cũ)</option>
             </select>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
               <button type="button" id="btnTestGeminiApi" class="cbtn">🧪 Kiểm tra kết nối API Key</button>
