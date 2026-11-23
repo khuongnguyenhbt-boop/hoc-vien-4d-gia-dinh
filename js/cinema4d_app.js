@@ -102,7 +102,7 @@
       const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
       if (s && typeof s === 'object') Object.assign(state.settings, s);
       // Tự động nâng cấp model cũ bị Google khóa (404) sang gemini-3.5-flash-lite
-      if (['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'].includes(state.settings.geminiModel)) {
+      if (['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'].includes(state.settings.geminiModel)) {
         state.settings.geminiModel = 'gemini-3.5-flash-lite';
       }
     } catch (_e) {}
